@@ -4,6 +4,7 @@
 1. [Lifecycle](#lifecycle)
 	1. [Discovery (`server/discover`)](#discovery-(server/discover))
 	1. [Per-request `_meta` keys](#per-request-meta-keys)
+	1. [Subscriptions (`subscriptions/listen`)](#subscriptions-(subscriptions/listen))
 1. [Transports](#transports)
 	1. [Stdio Transport](#stdio-transport)
 	1. [Streamable Transport](#streamable-transport)
@@ -140,6 +141,22 @@ The client populates these keys automatically on every outgoing request.
 Server-side handlers can read them
 through `ServerRequest[P].ProtocolVersion()`, `ServerRequest[P].ClientInfo()`,
 and `ServerRequest[P].ClientCapabilities()`.
+
+### Subscriptions (`subscriptions/listen`)
+
+Introduced in `2026-07-28` by
+[SEP-2575](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2575),
+`subscriptions/listen` replaces the legacy `resources/subscribe` RPC and
+the GET-based SSE endpoint with a single long-lived request that
+multiplexes every kind of server-to-client change notification a client
+opts in to. On the wire the client sends one `subscriptions/listen`
+request whose `notifications` field enumerates what it wants
+(`toolsListChanged`, `promptsListChanged`, `resourcesListChanged`, and/or
+a list of resource URIs in `resourceSubscriptions`); the server replies
+first with a `notifications/subscriptions/acknowledged` notification
+reporting the honored subset, then streams every change notification on
+the same request, and finally closes with a `SubscriptionsListenResult`
+when it tears the subscription down.
 
 ## Transports
 
